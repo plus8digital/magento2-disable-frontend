@@ -5,6 +5,7 @@ use Magento\Framework\App\ActionFlag;
 use Magento\Framework\App\Response\RedirectInterface;
 use Magento\Backend\Helper\Data;
 use Abelbm\DisableFrontend\Helper\Data as DisableFrontendHelper;
+use \Magento\Framework\Exception\NotFoundException;
 
 class DisableFrontend implements ObserverInterface{
 
@@ -29,13 +30,19 @@ class DisableFrontend implements ObserverInterface{
         RedirectInterface $redirect,
         Data $helperBackend,
         DisableFrontendHelper $disableFrontendHelper,
-        \Psr\Log\LoggerInterface $logger
+        \Psr\Log\LoggerInterface $logger,
+        \Magento\Framework\UrlInterface $url,
+        \Magento\Store\Model\StoreManagerInterface $storemanager,
+        \Magento\Framework\App\Request\Http $request
     ) {
         $this->_actionFlag = $actionFlag;
         $this->redirect = $redirect;
         $this->helperBackend = $helperBackend;
         $this->logger = $logger;
         $this->disableFrontendHelper = $disableFrontendHelper;
+        $this->url = $url;
+        $this->storemanager = $storemanager;
+        $this->request = $request;
     }
     
     /**
@@ -50,12 +57,32 @@ class DisableFrontend implements ObserverInterface{
     public function execute(\Magento\Framework\Event\Observer $observer){
 
         //$this->logger->info('TEST');
-        
-        $this->_actionFlag->set('', \Magento\Framework\App\Action\Action::FLAG_NO_DISPATCH, true);
-        
+        if($this->disableFrontendHelper->getConfigValue() == 3){
+             return;
+        }
+ 
         if($this->disableFrontendHelper->getConfigValue()){//redirect to Admin
+            $this->_actionFlag->set('', \Magento\Framework\App\Action\Action::FLAG_NO_DISPATCH, true);
             $controller = $observer->getControllerAction();
             $this->redirect->redirect($controller->getResponse(),$this->helperBackend->getHomePageUrl());
+        }else{
+
+//            //Blank page Removed            
+//            header("HTTP/2 404 Not Found");                     
+//            exit('Coming soon...');               
+
+            $action = $this->request->getActionName();
+                       
+            if($action == 'index'){
+                return;
+            }            
+            
+            $this->_actionFlag->set('', \Magento\Framework\App\Action\Action::FLAG_NO_DISPATCH, true);
+            $redirectUrl= $this->storemanager->getStore()->getBaseUrl();
+            $controller = $observer->getControllerAction();
+            $this->redirect->redirect($controller->getResponse(),$redirectUrl);
+            
+
         }
     }
 }
