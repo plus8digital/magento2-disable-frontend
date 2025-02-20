@@ -14,9 +14,8 @@ class Custom implements \Magento\Framework\Option\ArrayInterface{
     {
 
         return [
-            ['value' => 0, 'label' => __('Home Page Only')],
+            ['value' => 0, 'label' => __('Blank Page')],
             ['value' => 1, 'label' => __('Admin')],
-            ['value' => 3, 'label' => __('Frontend')],
         ];
     }
 }
