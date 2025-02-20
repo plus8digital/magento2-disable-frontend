@@ -57,22 +57,23 @@ class DisableFrontend implements ObserverInterface{
     public function execute(\Magento\Framework\Event\Observer $observer){
 
         //$this->logger->info('TEST');
-        if($this->disableFrontendHelper->getConfigValue() == 3){
+        if($this->disableFrontendHelper->getConfigValue() == 0){//disabled so normal frontend
              return;
         }
  
-        if($this->disableFrontendHelper->getConfigValue()){//redirect to Admin
+        if($this->disableFrontendHelper->getConfigValue() == 1){//redirect to Admin
             $this->_actionFlag->set('', \Magento\Framework\App\Action\Action::FLAG_NO_DISPATCH, true);
             $controller = $observer->getControllerAction();
             $this->redirect->redirect($controller->getResponse(),$this->helperBackend->getHomePageUrl());
-        }else{
-
-//            //Blank page Removed            
-//            header("HTTP/2 404 Not Found");                     
-//            exit('Coming soon...');               
-
+            return;
+        }
+        
+        
+        if($this->disableFrontendHelper->getConfigValue() == 2){//redirect to home page
+            
             $action = $this->request->getActionName();
                        
+            //if already index no redirect
             if($action == 'index'){
                 return;
             }            
@@ -81,8 +82,13 @@ class DisableFrontend implements ObserverInterface{
             $redirectUrl= $this->storemanager->getStore()->getBaseUrl();
             $controller = $observer->getControllerAction();
             $this->redirect->redirect($controller->getResponse(),$redirectUrl);
-            
+            return;
+        }        
 
-        }
+        //Blank page.. removed            
+        header("HTTP/2 404 Not Found");                     
+        exit('Coming soon...');               
+
+
     }
 }
